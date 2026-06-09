@@ -85,8 +85,6 @@ async def deduplicate(
     from nsi_normalizer.workers.tasks import run_deduplication
 
     records_payload = [r.model_dump(mode="json") for r in records]
-    run_deduplication.delay(
-        str(job_id), request.record_type, request.threshold, records_payload
-    )
+    run_deduplication.delay(str(job_id), request.record_type, request.threshold, records_payload)
 
     return DeduplicateResponse(job_id=job_id)
