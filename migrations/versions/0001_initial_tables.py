@@ -5,16 +5,17 @@ Revises:
 Create Date: 2025-01-01 00:00:00.000000
 
 """
-from typing import Sequence, Union
+
+from collections.abc import Sequence
 
 import sqlalchemy as sa
-from sqlalchemy.dialects.postgresql import JSONB, UUID
 from alembic import op
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 
 revision: str = "0001"
-down_revision: Union[str, None] = None
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = None
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
@@ -55,7 +56,9 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
     )
     op.create_index("ix_normalized_records_record_type", "normalized_records", ["record_type"])
-    op.create_index("ix_normalized_records_canonical_code", "normalized_records", ["canonical_code"])
+    op.create_index(
+        "ix_normalized_records_canonical_code", "normalized_records", ["canonical_code"]
+    )
     op.create_index("ix_normalized_records_raw_record_id", "normalized_records", ["raw_record_id"])
     op.create_index("ix_normalized_records_cluster_id", "normalized_records", ["cluster_id"])
 

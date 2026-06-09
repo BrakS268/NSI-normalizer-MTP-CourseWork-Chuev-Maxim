@@ -1,6 +1,4 @@
-import pytest
-
-from nsi_normalizer.ml.pipeline import DeduplicationPipeline, DeduplicationReport
+from nsi_normalizer.ml.pipeline import DeduplicationPipeline
 from nsi_normalizer.schemas.common import RawRecord
 
 

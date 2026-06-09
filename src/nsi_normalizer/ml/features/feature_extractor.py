@@ -63,15 +63,11 @@ def extract_features(left: RawRecord, right: RawRecord) -> FeatureVector:
     lev = rfdist.Levenshtein.normalized_similarity(name_l, name_r)
 
     code_exact = 1.0 if code_l and code_r and code_l == code_r else 0.0
-    code_prefix = (
-        1.0 if code_l and code_r and code_l[:2] == code_r[:2] else 0.0
-    )
+    code_prefix = 1.0 if code_l and code_r and code_l[:2] == code_r[:2] else 0.0
 
     desc_jaccard = _jaccard_on_tokens(desc_l, desc_r)
 
-    len_diff = (
-        abs(len(name_l) - len(name_r)) / max(len(name_l), len(name_r), 1)
-    )
+    len_diff = abs(len(name_l) - len(name_r)) / max(len(name_l), len(name_r), 1)
 
     return FeatureVector(
         jaro_winkler=jw,

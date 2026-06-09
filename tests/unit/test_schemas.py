@@ -1,10 +1,11 @@
+import uuid
+
 import pytest
 from pydantic import ValidationError
 
+from nsi_normalizer.schemas.common import NormalizedRecord, RawRecord
+from nsi_normalizer.schemas.fstec import SEVERITY_MAP, FstecRecord, Severity
 from nsi_normalizer.schemas.okved import OkvedRecord
-from nsi_normalizer.schemas.fstec import FstecRecord, Severity, SEVERITY_MAP
-from nsi_normalizer.schemas.common import RawRecord, NormalizedRecord
-import uuid
 
 
 class TestOkvedRecord:
@@ -73,14 +74,17 @@ class TestFstecRecord:
 
 
 class TestSeverityMap:
-    @pytest.mark.parametrize("raw,expected", [
-        ("высокий", Severity.HIGH),
-        ("High", Severity.HIGH),
-        ("H", Severity.HIGH),
-        ("критический", Severity.CRITICAL),
-        ("medium", Severity.MEDIUM),
-        ("низкий", Severity.LOW),
-    ])
+    @pytest.mark.parametrize(
+        "raw,expected",
+        [
+            ("высокий", Severity.HIGH),
+            ("High", Severity.HIGH),
+            ("H", Severity.HIGH),
+            ("критический", Severity.CRITICAL),
+            ("medium", Severity.MEDIUM),
+            ("низкий", Severity.LOW),
+        ],
+    )
     def test_severity_map_coverage(self, raw: str, expected: Severity) -> None:
         assert SEVERITY_MAP[raw.lower()] == expected
 

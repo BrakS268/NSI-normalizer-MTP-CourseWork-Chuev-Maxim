@@ -3,6 +3,7 @@
 Used in tests and for running without a real database.
 In production these would be replaced by async DB repositories.
 """
+
 from __future__ import annotations
 
 import uuid

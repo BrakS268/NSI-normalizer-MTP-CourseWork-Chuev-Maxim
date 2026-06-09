@@ -1,12 +1,12 @@
 from nsi_normalizer.schemas.common import (
-    NormalizedRecord,
-    NormalizationJob,
     DeduplicationResult,
+    NormalizationJob,
+    NormalizedRecord,
     RawRecord,
     RecordType,
 )
-from nsi_normalizer.schemas.okved import OkvedRecord, OkvedRawRecord
-from nsi_normalizer.schemas.fstec import FstecRecord, FstecRawRecord, Severity
+from nsi_normalizer.schemas.fstec import FstecRawRecord, FstecRecord, Severity
+from nsi_normalizer.schemas.okved import OkvedRawRecord, OkvedRecord
 
 __all__ = [
     "NormalizedRecord",

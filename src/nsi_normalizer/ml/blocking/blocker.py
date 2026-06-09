@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from collections.abc import Iterable
 from typing import NamedTuple
 
 from nsi_normalizer.core.cleaning.text_cleaner import clean_text, normalize_okved_code
@@ -92,7 +91,9 @@ class CompositeBlocker:
 
 
 def default_blocker() -> CompositeBlocker:
-    return CompositeBlocker([
-        CodePrefixBlocker(prefix_length=2),
-        SortedNeighborhoodBlocker(window=5),
-    ])
+    return CompositeBlocker(
+        [
+            CodePrefixBlocker(prefix_length=2),
+            SortedNeighborhoodBlocker(window=5),
+        ]
+    )

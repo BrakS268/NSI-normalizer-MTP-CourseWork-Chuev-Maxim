@@ -25,7 +25,7 @@ def load_labeled_pairs(csv_source: str | Path | bytes) -> tuple[list[list[float]
     else:
         text = Path(csv_source).read_text(encoding="utf-8")
 
-    X: list[list[float]] = []
+    X: list[list[float]] = []  # noqa: N806
     y: list[int] = []
 
     reader = csv.DictReader(io.StringIO(text))
@@ -62,7 +62,7 @@ def train(
     model_path: Path = Path("models/dedup_classifier.joblib"),
 ) -> dict[str, float]:
     """Train classifier on labeled pairs CSV and save the model."""
-    X, y = load_labeled_pairs(csv_source)
+    X, y = load_labeled_pairs(csv_source)  # noqa: N806
     if not X:
         raise ValueError("No training samples found in the CSV")
 

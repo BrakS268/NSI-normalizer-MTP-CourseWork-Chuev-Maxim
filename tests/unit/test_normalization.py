@@ -1,20 +1,21 @@
-import pytest
 from datetime import date
 
+import pytest
+
+from nsi_normalizer.core.normalization.canonical_selector import (
+    elect_canonical,
+    normalize_cluster,
+    normalize_fstec_record,
+    normalize_okved_record,
+)
 from nsi_normalizer.core.normalization.field_normalizer import (
+    normalize_cve_ids,
+    normalize_cvss,
+    normalize_date,
+    normalize_description,
     normalize_name,
     normalize_okved_code,
     normalize_severity,
-    normalize_date,
-    normalize_cve_ids,
-    normalize_cvss,
-    normalize_description,
-)
-from nsi_normalizer.core.normalization.canonical_selector import (
-    normalize_okved_record,
-    normalize_fstec_record,
-    normalize_cluster,
-    elect_canonical,
 )
 from nsi_normalizer.schemas.common import RawRecord
 from nsi_normalizer.schemas.fstec import Severity
@@ -39,65 +40,83 @@ def _fstec(bdu_id: str, name: str, **kw: str) -> RawRecord:
 
 
 class TestFieldNormalizer:
-    @pytest.mark.parametrize("raw,expected", [
-        ("  лишние пробелы  ", "лишние пробелы"),
-        ("много   внутри", "много внутри"),
-        ("норм", "норм"),
-    ])
+    @pytest.mark.parametrize(
+        "raw,expected",
+        [
+            ("  лишние пробелы  ", "лишние пробелы"),
+            ("много   внутри", "много внутри"),
+            ("норм", "норм"),
+        ],
+    )
     def test_normalize_name(self, raw: str, expected: str) -> None:
         assert normalize_name(raw) == expected
 
-    @pytest.mark.parametrize("raw,expected", [
-        ("62.1", "62.01"),
-        ("62.01", "62.01"),
-        ("62", "62"),
-        ("62.01.1", "62.01.1"),
-        (" 47.91 ", "47.91"),
-    ])
+    @pytest.mark.parametrize(
+        "raw,expected",
+        [
+            ("62.1", "62.01"),
+            ("62.01", "62.01"),
+            ("62", "62"),
+            ("62.01.1", "62.01.1"),
+            (" 47.91 ", "47.91"),
+        ],
+    )
     def test_normalize_okved_code(self, raw: str, expected: str) -> None:
         assert normalize_okved_code(raw) == expected
 
-    @pytest.mark.parametrize("raw,expected", [
-        ("высокий", Severity.HIGH),
-        ("High", Severity.HIGH),
-        ("H", Severity.HIGH),
-        ("критический", Severity.CRITICAL),
-        ("средний", Severity.MEDIUM),
-        ("низкий", Severity.LOW),
-        ("неизвестно", Severity.UNKNOWN),
-        ("", Severity.UNKNOWN),
-    ])
+    @pytest.mark.parametrize(
+        "raw,expected",
+        [
+            ("высокий", Severity.HIGH),
+            ("High", Severity.HIGH),
+            ("H", Severity.HIGH),
+            ("критический", Severity.CRITICAL),
+            ("средний", Severity.MEDIUM),
+            ("низкий", Severity.LOW),
+            ("неизвестно", Severity.UNKNOWN),
+            ("", Severity.UNKNOWN),
+        ],
+    )
     def test_normalize_severity(self, raw: str, expected: Severity) -> None:
         assert normalize_severity(raw) == expected
 
-    @pytest.mark.parametrize("raw,expected", [
-        ("2024-03-15", date(2024, 3, 15)),
-        ("15.03.2024", date(2024, 3, 15)),
-        ("", None),
-        ("not-a-date", None),
-    ])
+    @pytest.mark.parametrize(
+        "raw,expected",
+        [
+            ("2024-03-15", date(2024, 3, 15)),
+            ("15.03.2024", date(2024, 3, 15)),
+            ("", None),
+            ("not-a-date", None),
+        ],
+    )
     def test_normalize_date(self, raw: str, expected: date | None) -> None:
         assert normalize_date(raw) == expected
 
-    @pytest.mark.parametrize("raw,expected", [
-        ("CVE-2024-12345", ["CVE-2024-12345"]),
-        ("cve-2024-12345", ["CVE-2024-12345"]),
-        ("CVE-2024-12345, CVE-2023-99999", ["CVE-2024-12345", "CVE-2023-99999"]),
-        ("нет идентификаторов", []),
-        ("", []),
-    ])
+    @pytest.mark.parametrize(
+        "raw,expected",
+        [
+            ("CVE-2024-12345", ["CVE-2024-12345"]),
+            ("cve-2024-12345", ["CVE-2024-12345"]),
+            ("CVE-2024-12345, CVE-2023-99999", ["CVE-2024-12345", "CVE-2023-99999"]),
+            ("нет идентификаторов", []),
+            ("", []),
+        ],
+    )
     def test_normalize_cve_ids(self, raw: str, expected: list[str]) -> None:
         assert normalize_cve_ids(raw) == expected
 
-    @pytest.mark.parametrize("raw,expected", [
-        ("7.5", 7.5),
-        ("7,5", 7.5),
-        ("10.0", 10.0),
-        ("0.0", 0.0),
-        ("11.0", None),
-        ("abc", None),
-        ("", None),
-    ])
+    @pytest.mark.parametrize(
+        "raw,expected",
+        [
+            ("7.5", 7.5),
+            ("7,5", 7.5),
+            ("10.0", 10.0),
+            ("0.0", 0.0),
+            ("11.0", None),
+            ("abc", None),
+            ("", None),
+        ],
+    )
     def test_normalize_cvss(self, raw: str, expected: float | None) -> None:
         assert normalize_cvss(raw) == expected
 

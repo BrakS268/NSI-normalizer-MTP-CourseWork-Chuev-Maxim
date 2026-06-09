@@ -1,10 +1,8 @@
-import pytest
-
 from nsi_normalizer.ml.blocking.blocker import (
-    CodePrefixBlocker,
-    SortedNeighborhoodBlocker,
-    CompositeBlocker,
     CandidatePair,
+    CodePrefixBlocker,
+    CompositeBlocker,
+    SortedNeighborhoodBlocker,
     default_blocker,
 )
 from nsi_normalizer.schemas.common import RawRecord

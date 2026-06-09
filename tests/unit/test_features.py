@@ -1,9 +1,7 @@
-import pytest
-
 from nsi_normalizer.ml.features.feature_extractor import (
+    FEATURE_NAMES,
     extract_features,
     features_to_list,
-    FEATURE_NAMES,
 )
 from nsi_normalizer.schemas.common import RawRecord
 

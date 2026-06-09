@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import uuid
 
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from nsi_normalizer.api.dependencies import verify_api_key
-from nsi_normalizer.api.schemas import JobStatusResponse, JobResultResponse
+from nsi_normalizer.api.schemas import JobResultResponse, JobStatusResponse
 from nsi_normalizer.store import job_store
 
 router = APIRouter()

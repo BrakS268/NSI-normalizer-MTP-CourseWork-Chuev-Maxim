@@ -4,7 +4,7 @@ import csv
 import io
 from pathlib import Path
 
-import defusedxml.ElementTree as ET
+import defusedxml.ElementTree as ET  # noqa: N817
 
 from nsi_normalizer.schemas.common import RawRecord
 
@@ -21,7 +21,7 @@ def parse_fstec_csv(source: str | Path | bytes, *, encoding: str = "utf-8") -> l
     else:
         text = Path(source).read_text(encoding=encoding)
 
-    COL_MAP = {
+    COL_MAP = {  # noqa: N806
         "Идентификатор": "bdu_id",
         "Наименование": "name",
         "Описание": "description",

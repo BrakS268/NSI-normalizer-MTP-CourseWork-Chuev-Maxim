@@ -1,36 +1,42 @@
 import pytest
 
+from nsi_normalizer.core.cleaning.pipeline import CleaningPipeline
 from nsi_normalizer.core.cleaning.text_cleaner import (
     clean_text,
-    normalize_okved_code,
     collapse_whitespace,
-    unicode_normalize,
+    normalize_okved_code,
     strip_legal_suffixes,
+    unicode_normalize,
 )
-from nsi_normalizer.core.cleaning.pipeline import CleaningPipeline
 from nsi_normalizer.schemas.common import RawRecord
 
 
 class TestTextCleaner:
-    @pytest.mark.parametrize("raw,expected", [
-        ("  лишние   пробелы  ", "лишние пробелы"),
-        ("строка\tс\tтабами", "строка с табами"),
-        ("много\n\nпустых\n\nстрок", "много пустых строк"),
-    ])
+    @pytest.mark.parametrize(
+        "raw,expected",
+        [
+            ("  лишние   пробелы  ", "лишние пробелы"),
+            ("строка\tс\tтабами", "строка с табами"),
+            ("много\n\nпустых\n\nстрок", "много пустых строк"),
+        ],
+    )
     def test_collapse_whitespace(self, raw: str, expected: str) -> None:
         assert collapse_whitespace(raw) == expected
 
     def test_unicode_normalize_nfc(self) -> None:
         # NFC: composed form
-        text = "е́" # е + combining acute = ё in NFD
+        text = "е́"  # е + combining acute = ё in NFD
         result = unicode_normalize(text)
         assert len(result) <= len(text)
 
-    @pytest.mark.parametrize("raw,expected", [
-        ("ООО Рога и Копыта", "Рога и Копыта"),
-        ("ОАО  Газпром", "Газпром"),
-        ("ИП Иванов", "Иванов"),
-    ])
+    @pytest.mark.parametrize(
+        "raw,expected",
+        [
+            ("ООО Рога и Копыта", "Рога и Копыта"),
+            ("ОАО  Газпром", "Газпром"),
+            ("ИП Иванов", "Иванов"),
+        ],
+    )
     def test_strip_legal_suffixes(self, raw: str, expected: str) -> None:
         assert strip_legal_suffixes(raw) == expected
 
@@ -54,14 +60,17 @@ class TestTextCleaner:
 
 
 class TestOkvedCodeNormalizer:
-    @pytest.mark.parametrize("raw,expected", [
-        ("62", "62"),
-        ("62.01", "62.01"),
-        ("62.1", "62.01"),
-        ("62.01.1", "62.01.1"),
-        (" 62.01 ", "62.01"),
-        ("47.91.2", "47.91.2"),
-    ])
+    @pytest.mark.parametrize(
+        "raw,expected",
+        [
+            ("62", "62"),
+            ("62.01", "62.01"),
+            ("62.1", "62.01"),
+            ("62.01.1", "62.01.1"),
+            (" 62.01 ", "62.01"),
+            ("47.91.2", "47.91.2"),
+        ],
+    )
     def test_normalize_code(self, raw: str, expected: str) -> None:
         assert normalize_okved_code(raw) == expected
 
@@ -97,10 +106,7 @@ class TestCleaningPipeline:
 
     def test_pipeline_run_batch(self) -> None:
         pipeline = CleaningPipeline()
-        records = [
-            self._make_record(name=f"  Запись {i}  ", code="62.01")
-            for i in range(5)
-        ]
+        records = [self._make_record(name=f"  Запись {i}  ", code="62.01") for i in range(5)]
         results = pipeline.run(records)
         assert len(results) == 5
         assert all(not r.payload["name"].startswith(" ") for r in results)

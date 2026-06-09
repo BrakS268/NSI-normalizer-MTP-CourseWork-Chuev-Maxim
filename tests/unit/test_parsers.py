@@ -1,9 +1,6 @@
-import pytest
-
-from nsi_normalizer.core.parsers.okved_parser import parse_okved_xml, parse_okved_csv
 from nsi_normalizer.core.parsers.fstec_parser import parse_fstec_csv, parse_fstec_xml
-from nsi_normalizer.core.parsers.generic_parser import parse_json, parse_csv
-
+from nsi_normalizer.core.parsers.generic_parser import parse_csv, parse_json
+from nsi_normalizer.core.parsers.okved_parser import parse_okved_csv, parse_okved_xml
 
 OKVED_XML_FIXTURE = """<?xml version="1.0" encoding="UTF-8"?>
 <OKVED2>

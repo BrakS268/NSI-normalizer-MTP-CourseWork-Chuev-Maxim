@@ -11,7 +11,7 @@ CVE_ID_RE = re.compile(r"^CVE-\d{4}-\d{4,}$")
 BDU_ID_RE = re.compile(r"^BDU:\d{4}-\d{5}$")
 
 
-class Severity(str, Enum):
+class Severity(str, Enum):  # noqa: UP042
     CRITICAL = "critical"
     HIGH = "high"
     MEDIUM = "medium"

@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from nsi_normalizer.api.routers import health, records, jobs
+from nsi_normalizer.api.routers import health, jobs, records
 
 app = FastAPI(
     title="NSI Normalizer",

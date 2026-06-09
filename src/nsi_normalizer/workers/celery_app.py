@@ -1,4 +1,5 @@
 from celery import Celery
+
 from nsi_normalizer.config import settings
 
 celery_app = Celery(

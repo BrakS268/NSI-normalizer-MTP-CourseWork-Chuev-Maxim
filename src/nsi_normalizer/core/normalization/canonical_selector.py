@@ -1,17 +1,15 @@
 from __future__ import annotations
 
 from nsi_normalizer.core.normalization.field_normalizer import (
+    normalize_cve_ids,
+    normalize_cvss,
+    normalize_date,
+    normalize_description,
     normalize_name,
     normalize_okved_code,
     normalize_severity,
-    normalize_date,
-    normalize_cve_ids,
-    normalize_cvss,
-    normalize_description,
 )
 from nsi_normalizer.schemas.common import NormalizedRecord, RawRecord
-from nsi_normalizer.schemas.fstec import Severity
-
 
 # Higher weight = more trusted source
 _SOURCE_WEIGHTS: dict[str, float] = {
@@ -64,9 +62,7 @@ def normalize_okved_record(record: RawRecord) -> NormalizedRecord:
         "description": normalize_description(raw_desc) if raw_desc else None,
         "section": p.get("section"),
         "parent_code": (
-            normalize_okved_code(str(p["parent_code"]))
-            if p.get("parent_code")
-            else None
+            normalize_okved_code(str(p["parent_code"])) if p.get("parent_code") else None
         ),
         "version": p.get("version", "OKVED-2"),
     }

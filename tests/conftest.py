@@ -1,5 +1,6 @@
 import pytest
 from fastapi.testclient import TestClient
+
 from nsi_normalizer.api.main import app
 
 

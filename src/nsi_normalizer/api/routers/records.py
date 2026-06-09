@@ -6,12 +6,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from nsi_normalizer.api.dependencies import verify_api_key
 from nsi_normalizer.api.schemas import (
+    DeduplicateRequest,
+    DeduplicateResponse,
     IngestRequest,
     IngestResponse,
     NormalizeRequest,
     NormalizeResponse,
-    DeduplicateRequest,
-    DeduplicateResponse,
 )
 from nsi_normalizer.core.normalization.canonical_selector import normalize_record
 from nsi_normalizer.schemas.common import RawRecord
@@ -83,6 +83,7 @@ async def deduplicate(
     job_store.create(job_id, request.record_type, total=len(records))
 
     from nsi_normalizer.workers.tasks import run_deduplication
+
     run_deduplication.delay(str(job_id), request.record_type, request.threshold)
 
     return DeduplicateResponse(job_id=job_id)

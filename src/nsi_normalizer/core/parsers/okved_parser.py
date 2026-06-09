@@ -4,7 +4,7 @@ import csv
 import io
 from pathlib import Path
 
-import defusedxml.ElementTree as ET
+import defusedxml.ElementTree as ET  # noqa: N817
 
 from nsi_normalizer.schemas.common import RawRecord
 

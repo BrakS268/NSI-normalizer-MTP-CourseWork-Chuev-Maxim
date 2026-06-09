@@ -2,25 +2,30 @@ FROM python:3.11-slim AS builder
 
 WORKDIR /build
 
-RUN pip install hatchling
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc g++ && \
+    rm -rf /var/lib/apt/lists/*
 
 COPY pyproject.toml .
 COPY src/ src/
 
-RUN pip wheel --no-cache-dir --wheel-dir /wheels .
+RUN pip install --no-cache-dir hatchling && \
+    pip install --no-cache-dir -e . --no-build-isolation
 
 
 FROM python:3.11-slim AS runtime
 
-RUN groupadd --gid 1001 appgroup && \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgomp1 && \
+    rm -rf /var/lib/apt/lists/* && \
+    groupadd --gid 1001 appgroup && \
     useradd --uid 1001 --gid appgroup --no-create-home appuser
 
 WORKDIR /app
 
-COPY --from=builder /wheels /wheels
-RUN pip install --no-cache-dir --no-index --find-links /wheels nsi-normalizer && \
-    rm -rf /wheels
-
+COPY --from=builder /usr/local/lib/python3.11 /usr/local/lib/python3.11
+COPY --from=builder /usr/local/bin /usr/local/bin
+COPY src/ src/
 COPY migrations/ migrations/
 COPY alembic.ini .
 

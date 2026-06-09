@@ -1,15 +1,15 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import joblib
 import numpy as np
-from pathlib import Path
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
 from nsi_normalizer.ml.features.feature_extractor import (
     FeatureVector,
-    FEATURE_NAMES,
     features_to_list,
 )
 
@@ -30,16 +30,21 @@ def _hard_rule(fv: FeatureVector) -> float | None:
 
 
 def build_sklearn_pipeline() -> Pipeline:
-    return Pipeline([
-        ("scaler", StandardScaler()),
-        ("clf", GradientBoostingClassifier(
-            n_estimators=200,
-            max_depth=4,
-            learning_rate=0.05,
-            subsample=0.8,
-            random_state=42,
-        )),
-    ])
+    return Pipeline(
+        [
+            ("scaler", StandardScaler()),
+            (
+                "clf",
+                GradientBoostingClassifier(
+                    n_estimators=200,
+                    max_depth=4,
+                    learning_rate=0.05,
+                    subsample=0.8,
+                    random_state=42,
+                ),
+            ),
+        ]
+    )
 
 
 class DedupClassifier:
@@ -71,7 +76,7 @@ class DedupClassifier:
                 + fv["code_exact_match"] * 0.1
             )
 
-        X = np.array([features_to_list(fv)])
+        X = np.array([features_to_list(fv)])  # noqa: N806
         proba: float = pipeline.predict_proba(X)[0][1]
         return float(proba)
 
@@ -81,7 +86,7 @@ class DedupClassifier:
 
     def fit(
         self,
-        X: list[list[float]],
+        X: list[list[float]],  # noqa: N803
         y: list[int],
     ) -> dict[str, float]:
         from sklearn.model_selection import cross_val_score
@@ -104,6 +109,7 @@ class DedupClassifier:
 def _is_fitted(pipeline: Pipeline) -> bool:
     try:
         from sklearn.utils.validation import check_is_fitted
+
         check_is_fitted(pipeline["clf"])
         return True
     except Exception:

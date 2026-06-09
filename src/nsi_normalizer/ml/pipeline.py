@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from pathlib import Path
 
 import networkx as nx
 
@@ -100,6 +99,7 @@ def _elect_canonical(records: list[RawRecord]) -> NormalizedRecord:
 
     Scoring: prefer longer name + longer description + has code.
     """
+
     def score(r: RawRecord) -> int:
         name = str(r.payload.get("name", ""))
         desc = str(r.payload.get("description") or "")

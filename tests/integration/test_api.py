@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import uuid
+
 import pytest
 from fastapi.testclient import TestClient
 
 from nsi_normalizer.api.main import app
-from nsi_normalizer.store import record_store, job_store
+from nsi_normalizer.store import job_store, record_store
 
 API_KEY = "changeme"
 HEADERS = {"X-API-Key": API_KEY}
@@ -137,7 +138,7 @@ class TestDeduplicate:
         assert r.status_code == 404
 
     def test_deduplicate_accepted_after_ingest(self, client: TestClient) -> None:
-        from unittest.mock import patch, MagicMock
+        from unittest.mock import MagicMock, patch
 
         self._ingest(client, [{"code": "62.01", "name": "Разработка ПО"}])
         with patch("nsi_normalizer.workers.tasks.run_deduplication") as mock_task:

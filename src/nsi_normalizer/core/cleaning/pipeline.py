@@ -1,11 +1,9 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Iterable
-from typing import Any
 
-from nsi_normalizer.schemas.common import RawRecord
 from nsi_normalizer.core.cleaning.text_cleaner import clean_text, normalize_okved_code
-
+from nsi_normalizer.schemas.common import RawRecord
 
 Step = Callable[[RawRecord], RawRecord]
 
