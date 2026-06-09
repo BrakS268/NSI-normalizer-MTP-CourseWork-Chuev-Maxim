@@ -27,11 +27,27 @@ def _source_weight(source: str) -> float:
 
 
 def _completeness_score(record: RawRecord) -> float:
-    """Score based on how many important fields are filled."""
+    """Score based on how many type-relevant fields are filled."""
     p = record.payload
-    fields = ["name", "description", "code", "section", "severity", "cve_ids_raw"]
-    filled = sum(1 for f in fields if p.get(f))
-    return filled / len(fields)
+    if record.record_type == "okved":
+        # For OKVED: code + name are primary; description and section are bonus
+        required = ["code", "name"]
+        optional = ["description", "section", "parent_code"]
+    elif record.record_type == "fstec":
+        # For FSTEC: name + severity are primary; cve/cvss/dates are bonus
+        required = ["name", "severity"]
+        optional = ["description", "cve_ids_raw", "cvss_score_raw", "published_at_raw"]
+    else:
+        required = ["name"]
+        optional = ["description", "code"]
+
+    required_filled = sum(1 for f in required if p.get(f))
+    optional_filled = sum(1 for f in optional if p.get(f))
+
+    # Required fields give up to 0.7, optional up to 0.3
+    base = (required_filled / len(required)) * 0.7
+    bonus = (optional_filled / len(optional)) * 0.3 if optional else 0.0
+    return round(base + bonus, 4)
 
 
 def _record_score(record: RawRecord) -> float:

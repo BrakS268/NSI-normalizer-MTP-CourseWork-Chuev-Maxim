@@ -9,6 +9,9 @@ services:
       DATABASE_URL: postgresql+psycopg://nsi:nsi@postgres:5432/nsi_db
       REDIS_URL: redis://redis:6379/0
       API_KEY_HASH: ${API_KEY_HASH:-changeme}
+      PYTHONPATH: /app/src
+    volumes:
+      - ./src:/app/src
     depends_on:
       postgres:
         condition: service_healthy
@@ -28,6 +31,9 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg://nsi:nsi@postgres:5432/nsi_db
       REDIS_URL: redis://redis:6379/0
+      PYTHONPATH: /app/src
+    volumes:
+      - ./src:/app/src
     depends_on:
       postgres:
         condition: service_healthy

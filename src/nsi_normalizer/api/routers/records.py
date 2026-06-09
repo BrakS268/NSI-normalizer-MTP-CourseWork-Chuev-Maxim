@@ -67,12 +67,14 @@ async def normalize_one(
     "/deduplicate",
     response_model=DeduplicateResponse,
     status_code=status.HTTP_202_ACCEPTED,
-    summary="Start async deduplication job over ingested records",
+    summary="Start deduplication job over ingested records",
 )
 async def deduplicate(
     request: DeduplicateRequest,
     _: str = Depends(verify_api_key),
 ) -> DeduplicateResponse:
+    from nsi_normalizer.ml.pipeline import DeduplicationPipeline
+
     records = record_store.get_all(record_type=request.record_type)
     if not records:
         raise HTTPException(
@@ -81,10 +83,14 @@ async def deduplicate(
         )
     job_id = uuid.uuid4()
     job_store.create(job_id, request.record_type, total=len(records))
+    job_store.update(job_id, status="running")
 
-    from nsi_normalizer.workers.tasks import run_deduplication
-
-    records_payload = [r.model_dump(mode="json") for r in records]
-    run_deduplication.delay(str(job_id), request.record_type, request.threshold, records_payload)
+    try:
+        pipeline = DeduplicationPipeline(threshold=request.threshold)
+        report = pipeline.run(records)
+        job_store.complete(job_id, report)
+    except Exception as exc:
+        job_store.fail(job_id, str(exc))
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
     return DeduplicateResponse(job_id=job_id)

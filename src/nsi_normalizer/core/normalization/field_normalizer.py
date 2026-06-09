@@ -5,6 +5,7 @@ from datetime import date
 
 import dateparser
 
+from nsi_normalizer.core.cleaning.text_cleaner import clean_text
 from nsi_normalizer.schemas.fstec import SEVERITY_MAP, Severity
 
 _OKVED_CODE_RE = re.compile(r"^(\d{2})\.?(\d{0,2})\.?(\d?)$")
@@ -14,8 +15,8 @@ _SENTENCE_END = re.compile(r"(?<=[.!?])\s+")
 
 
 def normalize_name(raw: str) -> str:
-    """Strip extra whitespace and collapse internal spaces."""
-    return _MULTI_SPACE.sub(" ", raw.strip())
+    """Clean name: expand abbreviations, normalize unicode, collapse whitespace."""
+    return clean_text(raw, expand_abbrevs=True, strip_legal=False)
 
 
 def normalize_okved_code(raw: str) -> str:

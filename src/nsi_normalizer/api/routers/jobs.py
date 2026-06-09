@@ -55,7 +55,21 @@ async def get_job_result(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"Job is not completed yet, current status: {job['status']}",
         )
-    report = job.get("report", {})
+    report = job.get("report")
+    if report is None:
+        raise HTTPException(status_code=500, detail="Report data missing")
+
+    # report may be a DeduplicationReport dataclass or a plain dict
+    if hasattr(report, "clusters_found"):
+        return JobResultResponse(
+            job_id=job_id,
+            clusters_found=report.clusters_found,
+            duplicate_pairs=report.duplicate_pairs,
+            total_records=report.total_records,
+            reduction_ratio=report.reduction_ratio,
+            results=[r.model_dump() for r in report.results],
+        )
+    # fallback: dict
     return JobResultResponse(
         job_id=job_id,
         clusters_found=report.get("clusters_found", 0),
