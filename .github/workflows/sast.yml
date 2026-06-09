@@ -1,0 +1,45 @@
+name: SAST & Dependency Audit
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "0 6 * * 1"  # Every Monday at 06:00 UTC
+
+jobs:
+  bandit:
+    name: Bandit SAST
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install bandit[toml]
+      - name: Run Bandit
+        run: bandit -r src/ -c pyproject.toml -ll --format json -o bandit-report.json
+        continue-on-error: true
+      - name: Upload Bandit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: bandit-report
+          path: bandit-report.json
+
+  pip-audit:
+    name: Dependency CVE Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install pip-audit
+      - name: Audit dependencies
+        run: pip-audit --requirement <(pip install -e . --dry-run -q 2>/dev/null | grep "Would install" | sed 's/Would install //' | tr ' ' '\n' | sed 's/-[0-9].*//')
+        continue-on-error: true
+      - name: Run pip-audit on project
+        run: |
+          pip install -e .
+          pip-audit --local

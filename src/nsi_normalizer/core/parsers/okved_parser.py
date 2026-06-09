@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import csv
 import io
-import xml.etree.ElementTree as ET
 from pathlib import Path
+
+import defusedxml.ElementTree as ET
 
 from nsi_normalizer.schemas.common import RawRecord
 
