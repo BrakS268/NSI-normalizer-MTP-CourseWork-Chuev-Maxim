@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 
 import networkx as nx
 
-from nsi_normalizer.ml.blocking.blocker import CompositeBlocker, blocker_for, default_blocker
+from nsi_normalizer.ml.blocking.blocker import CompositeBlocker, blocker_for
 from nsi_normalizer.ml.classification.dedup_classifier import DedupClassifier
 from nsi_normalizer.ml.features.feature_extractor import extract_features
 from nsi_normalizer.schemas.common import DeduplicationResult, NormalizedRecord, RawRecord
@@ -108,7 +108,9 @@ def _elect_canonical(records: list[RawRecord]) -> NormalizedRecord:
         desc = str(r.payload.get("description") or "")
         has_code = 1 if r.payload.get("code") else 0
         # Penalise ALL-CAPS names — prefer mixed/title case
-        is_allcaps = raw_name == raw_name.upper() and raw_name.isalpha() is False and len(raw_name) > 5
+        is_allcaps = (
+            raw_name == raw_name.upper() and raw_name.isalpha() is False and len(raw_name) > 5
+        )
         caps_penalty = -30 if is_allcaps else 0
         return len(name) + len(desc) // 2 + has_code * 20 + caps_penalty
 

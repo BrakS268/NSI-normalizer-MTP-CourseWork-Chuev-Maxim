@@ -66,7 +66,7 @@ class TestIngest:
             json={"source": "test", "record_type": "okved", "records": []},
             headers=HEADERS,
         )
-        assert r.status_code == 401
+        assert r.status_code == 422
 
     def test_ingest_invalid_record_type(self, client: TestClient) -> None:
         r = client.post(
@@ -74,7 +74,7 @@ class TestIngest:
             json={"source": "s", "record_type": "unknown_type", "records": [{"name": "x"}]},
             headers=HEADERS,
         )
-        assert r.status_code == 401
+        assert r.status_code == 422
 
 
 class TestNormalize:

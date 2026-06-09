@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 
 from nsi_normalizer.api.dependencies import verify_api_key
 from nsi_normalizer.api.schemas import TrainResponse
@@ -14,7 +14,10 @@ router = APIRouter()
     summary="Train deduplication classifier on labeled pairs CSV",
 )
 async def train_classifier(
-    file: UploadFile = File(..., description="CSV with labeled pairs (left_code, left_name, right_code, right_name, label)"),
+    file: UploadFile = File(  # noqa: B008
+        ...,
+        description="CSV with labeled pairs (left_code, left_name, right_code, right_name, label)",
+    ),
     _: str = Depends(verify_api_key),
 ) -> TrainResponse:
     """Upload a labeled pairs CSV and train the GradientBoosting classifier.
@@ -25,6 +28,7 @@ async def train_classifier(
       label  (1 = duplicate, 0 = not duplicate)
     """
     from pathlib import Path
+
     from nsi_normalizer.ml.training.trainer import train
 
     if not file.filename or not file.filename.endswith(".csv"):

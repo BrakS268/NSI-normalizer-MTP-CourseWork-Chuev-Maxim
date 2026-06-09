@@ -108,7 +108,6 @@ async def process(
     _: str = Depends(verify_api_key),
 ) -> ProcessResponse:
     """Full pipeline: cleaning → normalization → deduplication in a single request."""
-    from nsi_normalizer.core.normalization.canonical_selector import normalize_cluster, normalize_record
     from nsi_normalizer.ml.pipeline import DeduplicationPipeline
 
     # Build RawRecords

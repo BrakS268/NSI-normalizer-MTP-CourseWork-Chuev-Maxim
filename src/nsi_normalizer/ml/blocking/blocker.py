@@ -59,7 +59,7 @@ class CodePrefixBlocker:
 
 
 class ExactFieldBlocker:
-    """Block by exact value of a payload field — all records sharing the same value are candidates."""
+    """Block by exact payload field value — all records sharing the same value are candidates."""
 
     def __init__(self, field: str) -> None:
         self.field = field
@@ -130,7 +130,7 @@ def blocker_for(records: list[RawRecord]) -> CompositeBlocker:
     if record_type == "fstec":
         return CompositeBlocker(
             [
-                ExactFieldBlocker("bdu_id"),   # group by exact BDU ID
+                ExactFieldBlocker("bdu_id"),  # group by exact BDU ID
                 SortedNeighborhoodBlocker(window=8),  # wider window for varied names
             ]
         )
