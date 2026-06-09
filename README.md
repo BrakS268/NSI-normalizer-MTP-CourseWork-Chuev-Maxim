@@ -1,7 +1,7 @@
 # NSI Normalizer
 
-[![CI](https://github.com/BrakS268/NSI-normalizer-MTP-CourseWork-Chuev-Maxim/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/nsi-normalizer/actions/workflows/ci.yml)
-[![SAST](https://github.com/BrakS268/NSI-normalizer-MTP-CourseWork-Chuev-Maxim/actions/workflows/sast.yml/badge.svg)](https://github.com/YOUR_USERNAME/nsi-normalizer/actions/workflows/sast.yml)
+[![CI](https://github.com/BrakS268/NSI-normalizer-MTP-CourseWork-Chuev-Maxim/actions/workflows/ci.yml/badge.svg)](https://github.com/BrakS268/NSI-normalizer-MTP-CourseWork-Chuev-Maxim/actions/workflows/ci.yml)
+[![SAST](https://github.com/BrakS268/NSI-normalizer-MTP-CourseWork-Chuev-Maxim/actions/workflows/sast.yml/badge.svg)](https://github.com/BrakS268/NSI-normalizer-MTP-CourseWork-Chuev-Maxim/actions/workflows/sast.yml)
 
 ML-модуль автоматической нормализации записей нормативно-справочной информации (НСИ).
 
