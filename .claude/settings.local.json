@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "PowerShell(New-Item -ItemType Directory -Force \"D:\\\\Cursovaya\\\\.github\\\\workflows\")"
+      "PowerShell(New-Item -ItemType Directory -Force \"D:\\\\Cursovaya\\\\.github\\\\workflows\")",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "PowerShell(Get-ChildItem -Path \"D:\\\\Cursovaya\" -MaxDepth 1 -File | ForEach-Object { $_.Name } | Sort-Object)"
     ]
   }
 }
