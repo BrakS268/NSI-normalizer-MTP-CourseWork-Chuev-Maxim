@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -28,7 +28,7 @@ class NormalizedRecord(BaseModel):
     confidence: float = Field(..., ge=0.0, le=1.0)
     cluster_id: uuid.UUID | None = None
     source: str
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 class DeduplicationResult(BaseModel):
@@ -59,7 +59,7 @@ class NormalizationJob(BaseModel):
     status: Literal["pending", "running", "completed", "failed"] = "pending"
     total_records: int = 0
     processed_records: int = 0
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     finished_at: datetime | None = None
     error: str | None = None
 

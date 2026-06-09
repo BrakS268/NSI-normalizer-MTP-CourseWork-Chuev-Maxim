@@ -5,13 +5,13 @@ from nsi_normalizer.core.parsers.fstec_parser import parse_fstec_csv, parse_fste
 from nsi_normalizer.core.parsers.generic_parser import parse_json, parse_csv
 
 
-OKVED_XML_FIXTURE = b"""<?xml version="1.0" encoding="UTF-8"?>
+OKVED_XML_FIXTURE = """<?xml version="1.0" encoding="UTF-8"?>
 <OKVED2>
   <Item RAZDEL="J" KOD="62" NAIM="Разработка компьютерного программного обеспечения"/>
   <Item RAZDEL="J" KOD="62.01" NAIM="Разработка компьютерного программного обеспечения" PRIM="Включает разработку ПО"/>
   <Item RAZDEL="J" KOD="62.01.1" NAIM="Разработка программного обеспечения"/>
   <Item KOD="" NAIM="Пустой код — должен быть пропущен"/>
-</OKVED2>"""
+</OKVED2>""".encode()
 
 OKVED_CSV_FIXTURE = """code,name,description
 62,Разработка ПО,
@@ -23,7 +23,7 @@ BDU:2024-01234,Уязвимость ядра Linux,Описание уязвим
 BDU:2024-05678,Уязвимость OpenSSL,,Средний,,5.3
 ,Без идентификатора,Пропускаем,,, """
 
-FSTEC_XML_FIXTURE = b"""<?xml version="1.0" encoding="UTF-8"?>
+FSTEC_XML_FIXTURE = """<?xml version="1.0" encoding="UTF-8"?>
 <vulnerabilities>
   <vulnerability>
     <identifier>BDU:2024-01234</identifier>
@@ -37,9 +37,9 @@ FSTEC_XML_FIXTURE = b"""<?xml version="1.0" encoding="UTF-8"?>
     <identifier></identifier>
     <name>Без ID — пропускаем</name>
   </vulnerability>
-</vulnerabilities>"""
+</vulnerabilities>""".encode()
 
-GENERIC_JSON_FIXTURE = b'[{"id": "1", "name": "Запись 1"}, {"id": "2", "name": "Запись 2"}]'
+GENERIC_JSON_FIXTURE = '[{"id": "1", "name": "Запись 1"}, {"id": "2", "name": "Запись 2"}]'.encode()
 GENERIC_CSV_FIXTURE = "id,name,value\n1,Запись 1,100\n2,Запись 2,200"
 
 
