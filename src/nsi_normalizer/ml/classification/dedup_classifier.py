@@ -13,7 +13,7 @@ from nsi_normalizer.ml.features.feature_extractor import (
     features_to_list,
 )
 
-DEFAULT_MODEL_PATH = Path("/tmp/models/dedup_classifier.joblib")
+DEFAULT_MODEL_PATH = Path("/app/models/dedup_classifier.joblib")
 
 # Rule-based shortcut thresholds — avoids ML inference for obvious cases
 _HARD_MATCH_JW = 0.97

@@ -41,7 +41,7 @@ async def train_classifier(
         )
 
     try:
-        model_path = Path("/tmp/models/dedup_classifier.joblib")
+        model_path = Path("/app/models/dedup_classifier.joblib")
         metrics = train(contents, model_path=model_path)
     except ValueError as e:
         raise HTTPException(

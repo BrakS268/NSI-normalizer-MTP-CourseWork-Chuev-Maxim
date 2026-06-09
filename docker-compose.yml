@@ -12,6 +12,7 @@ services:
       PYTHONPATH: /app/src
     volumes:
       - ./src:/app/src
+      - ./models:/app/models
     depends_on:
       postgres:
         condition: service_healthy
@@ -34,6 +35,7 @@ services:
       PYTHONPATH: /app/src
     volumes:
       - ./src:/app/src
+      - ./models:/app/models
     depends_on:
       postgres:
         condition: service_healthy

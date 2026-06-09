@@ -128,30 +128,14 @@ async def process(
 
     # Build output: one normalized record per cluster
     output: list = []
-    seen_ids: set[str] = set()
-
     for cluster_result in report.results:
-        # Collect raw records belonging to this cluster
-        cluster_raw = [r for r in raw_records if str(r.canonical_id if hasattr(r, "canonical_id") else id(r)) not in seen_ids]
-        # Find records by cluster membership
-        members = [r for r in raw_records if str(id(r)) not in seen_ids]
-
-        if len(cluster_result.record_ids) > 1:
-            # Multiple records in cluster — pick canonical from group
-            cluster_members = [
-                r for r in raw_records
-                if str(r.raw_id) in {str(rid) for rid in cluster_result.record_ids}
-                   or str(id(r)) in {str(rid) for rid in cluster_result.record_ids}
-            ]
-            if cluster_members:
-                normalized = normalize_cluster(cluster_members)
-            else:
-                normalized = cluster_result.canonical_record
+        canonical = cluster_result.canonical_record
+        # Use ML confidence for merged clusters, 1.0 for unique singletons
+        if cluster_result.record_count > 1:
+            ml_confidence = round(cluster_result.confidence, 4)
         else:
-            normalized = cluster_result.canonical_record
-
-        for rid in cluster_result.record_ids:
-            seen_ids.add(str(rid))
+            ml_confidence = 1.0
+        normalized = canonical.model_copy(update={"confidence": ml_confidence})
         output.append(normalized)
 
     total_input = len(raw_records)
