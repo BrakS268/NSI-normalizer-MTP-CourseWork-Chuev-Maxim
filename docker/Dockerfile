@@ -11,7 +11,7 @@ COPY README.md .
 COPY src/ src/
 
 RUN pip install --no-cache-dir hatchling && \
-    pip install --no-cache-dir -e . --no-build-isolation
+    pip install --no-cache-dir . --no-build-isolation
 
 
 FROM python:3.11-slim AS runtime
