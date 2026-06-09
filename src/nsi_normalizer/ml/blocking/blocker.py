@@ -58,6 +58,30 @@ class CodePrefixBlocker:
         return pairs
 
 
+class ExactFieldBlocker:
+    """Block by exact value of a payload field — all records sharing the same value are candidates."""
+
+    def __init__(self, field: str) -> None:
+        self.field = field
+
+    def get_candidate_pairs(self, records: list[RawRecord]) -> set[CandidatePair]:
+        buckets: dict[str, list[str]] = {}
+        for record in records:
+            value = str(record.payload.get(self.field, "") or "").strip()
+            if not value:
+                continue
+            rid = _record_id(record)
+            buckets.setdefault(value, []).append(rid)
+
+        pairs: set[CandidatePair] = set()
+        for bucket in buckets.values():
+            for i in range(len(bucket)):
+                for j in range(i + 1, len(bucket)):
+                    a, b = bucket[i], bucket[j]
+                    pairs.add(CandidatePair(min(a, b), max(a, b)))
+        return pairs
+
+
 class SortedNeighborhoodBlocker:
     """Sorted Neighborhood blocking on cleaned name — sliding window of size W."""
 
@@ -80,7 +104,7 @@ class SortedNeighborhoodBlocker:
 class CompositeBlocker:
     """Union of multiple blockers — maximises recall."""
 
-    def __init__(self, blockers: list[CodePrefixBlocker | SortedNeighborhoodBlocker]) -> None:
+    def __init__(self, blockers: list) -> None:
         self.blockers = blockers
 
     def get_candidate_pairs(self, records: list[RawRecord]) -> set[CandidatePair]:
@@ -91,9 +115,23 @@ class CompositeBlocker:
 
 
 def default_blocker() -> CompositeBlocker:
+    """Default blocker for OKVED records."""
     return CompositeBlocker(
         [
             CodePrefixBlocker(prefix_length=2),
             SortedNeighborhoodBlocker(window=5),
         ]
     )
+
+
+def blocker_for(records: list[RawRecord]) -> CompositeBlocker:
+    """Select blocker strategy based on record type."""
+    record_type = records[0].record_type if records else "okved"
+    if record_type == "fstec":
+        return CompositeBlocker(
+            [
+                ExactFieldBlocker("bdu_id"),   # group by exact BDU ID
+                SortedNeighborhoodBlocker(window=8),  # wider window for varied names
+            ]
+        )
+    return default_blocker()

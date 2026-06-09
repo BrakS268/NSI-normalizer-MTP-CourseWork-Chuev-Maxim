@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 
 import networkx as nx
 
-from nsi_normalizer.ml.blocking.blocker import CompositeBlocker, default_blocker
+from nsi_normalizer.ml.blocking.blocker import CompositeBlocker, blocker_for, default_blocker
 from nsi_normalizer.ml.classification.dedup_classifier import DedupClassifier
 from nsi_normalizer.ml.features.feature_extractor import extract_features
 from nsi_normalizer.schemas.common import DeduplicationResult, NormalizedRecord, RawRecord
@@ -35,7 +35,7 @@ class DeduplicationPipeline:
         classifier: DedupClassifier | None = None,
         threshold: float = 0.65,
     ) -> None:
-        self.blocker = blocker or default_blocker()
+        self.blocker = blocker  # None = auto-detect by record type in run()
         self.classifier = classifier or DedupClassifier()
         self.threshold = threshold
 
@@ -47,8 +47,9 @@ class DeduplicationPipeline:
         records = [r.model_copy(update={"raw_id": str(i)}) for i, r in enumerate(records)]
         id_to_record = {r.raw_id: r for r in records if r.raw_id}
 
-        # Stage 1: blocking
-        candidate_pairs = self.blocker.get_candidate_pairs(records)
+        # Stage 1: blocking (use type-aware blocker if not explicitly set)
+        active_blocker = self.blocker if self.blocker is not None else blocker_for(records)
+        candidate_pairs = active_blocker.get_candidate_pairs(records)
 
         # Stage 2 & 3: feature extraction + classification
         graph: nx.Graph = nx.Graph()

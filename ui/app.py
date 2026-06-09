@@ -22,7 +22,8 @@ st.set_page_config(
 )
 
 # ── CSS ───────────────────────────────────────────────────────────────────────
-st.markdown("""
+st.markdown(
+    """
 <style>
 .metric-card {
     background: #f0f2f6;
@@ -34,7 +35,9 @@ st.markdown("""
 .metric-card .label { font-size: 0.85rem; color: #555; margin-top: 4px; }
 .stAlert { border-radius: 8px; }
 </style>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
@@ -63,16 +66,20 @@ with st.sidebar:
     st.markdown("📊 rapidfuzz + networkx")
     st.markdown("🔒 defusedxml + bandit")
     st.divider()
-    st.markdown("**[GitHub](https://github.com/BrakS268/NSI-normalizer-MTP-CourseWork-Chuev-Maxim)**")
+    st.markdown(
+        "**[GitHub](https://github.com/BrakS268/NSI-normalizer-MTP-CourseWork-Chuev-Maxim)**"
+    )
 
 
 # ── Tabs ──────────────────────────────────────────────────────────────────────
-tab1, tab2, tab3, tab4 = st.tabs([
-    "🚀 Обработка справочника",
-    "✨ Нормализация записи",
-    "🎓 Обучение модели",
-    "📖 О проекте",
-])
+tab1, tab2, tab3, tab4 = st.tabs(
+    [
+        "🚀 Обработка справочника",
+        "✨ Нормализация записи",
+        "🎓 Обучение модели",
+        "📖 О проекте",
+    ]
+)
 
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -80,7 +87,10 @@ tab1, tab2, tab3, tab4 = st.tabs([
 # ═════════════════════════════════════════════════════════════════════════════
 with tab1:
     st.header("🚀 Полная обработка справочника")
-    st.markdown("Загрузите CSV с «грязными» данными — система очистит, нормализует и уберёт дубли за один шаг.")
+    st.markdown(
+        "Загрузите CSV с «грязными» данными — "
+        "система очистит, нормализует и уберёт дубли за один шаг."
+    )
 
     col_upload, col_settings = st.columns([3, 1])
 
@@ -98,9 +108,15 @@ with tab1:
     with st.expander("⚙️ Дополнительные настройки"):
         threshold = st.slider(
             "Порог дедупликации",
-            0.5, 0.95, 0.65, 0.05,
+            0.5,
+            0.95,
+            0.65,
+            0.05,
             key="proc_thresh",
-            help="Минимальная уверенность модели для признания записей дублями. По умолчанию 0.65 — оптимально для обученной модели.",
+            help=(
+                "Минимальная уверенность модели для признания записей дублями. "
+                "По умолчанию 0.65 — оптимально для обученной модели."
+            ),
         )
 
     # Load data
@@ -111,34 +127,65 @@ with tab1:
         except Exception:
             uploaded.seek(0)
             df_input = pd.read_csv(uploaded, dtype=str, on_bad_lines="skip")
-            st.warning("⚠️ Некоторые строки пропущены из-за ошибок формата CSV (возможно, незакавыченные запятые в названиях)")
+            st.warning(
+                "⚠️ Некоторые строки пропущены из-за ошибок формата CSV "
+                "(возможно, незакавыченные запятые в названиях)"
+            )
         # Strip whitespace from all string columns
         df_input = df_input.apply(lambda col: col.str.strip() if col.dtype == object else col)
+        # Rename columns to API-expected field names (handles Russian headers and FSTEC exports)
+        df_input = df_input.rename(
+            columns={
+                # OKVED / universal
+                "Код": "code",
+                "Каноническое название": "name",
+                "Уверенность": "confidence",
+                # FSTEC BDU Russian column names
+                "Идентификатор": "bdu_id",
+                "Наименование": "name",
+                "Описание": "description",
+                "Уровень опасности": "severity",
+                "Идентификатор CVE": "cve_ids_raw",
+                "Оценка CVSS": "cvss_score_raw",
+                "Дата публикации": "published_at_raw",
+                "Дата обновления": "updated_at_raw",
+            }
+        )
         st.success(f"✅ Загружено {len(df_input)} записей из файла")
     else:
-        df_input = pd.DataFrame([
-            {"code": "62.01", "name": "Разработка компьютерного программного обеспечения"},
-            {"code": "62.01", "name": "разраб. компьютерного программного обеспечения"},
-            {"code": "62.1",  "name": "разраб. компьютерного ПО"},
-            {"code": "62.01", "name": "РАЗРАБОТКА КОМПЬЮТЕРНОГО ПРОГРАММНОГО ОБЕСПЕЧЕНИЯ"},
-            {"code": "62.02", "name": "Деятельность консультативная в области компьютерных технологий"},
-            {"code": "62.02", "name": "деят. консультативная в обл. компьютерных технологий"},
-            {"code": "47.91", "name": "Торговля розничная через интернет"},
-            {"code": "47.91", "name": "торговля розн. через инт."},
-            {"code": "47.91", "name": "ТОРГОВЛЯ РОЗНИЧНАЯ ЧЕРЕЗ ИНТЕРНЕТ"},
-            {"code": "63.11", "name": "Деятельность по обработке данных и размещению информации"},
-            {"code": "63.11", "name": "деят. по обработке данных и размещению информации"},
-            {"code": "41.20", "name": "Строительство жилых и нежилых зданий"},
-            {"code": "41.20", "name": "стр-во жилых и нежилых зданий"},
-            {"code": "85.11", "name": "Образование дошкольное"},
-            {"code": "85.11", "name": "ОБРАЗОВАНИЕ ДОШКОЛЬНОЕ"},
-            {"code": "72.19", "name": "Научные исследования и разработки в области технических наук"},
-            {"code": "72.19", "name": "науч. исслед. и разраб. в обл. техн. наук"},
-            {"code": "49.10", "name": "Перевозки железнодорожные пассажирские"},
-            {"code": "49.10", "name": "перевозки ж.-д. пассажирские"},
-            {"code": "69.10", "name": "Деятельность в области права"},
-        ])
-        st.info(f"📋 Используется встроенный пример: {len(df_input)} записей с дублями и аббревиатурами")
+        df_input = pd.DataFrame(
+            [
+                {"code": "62.01", "name": "Разработка компьютерного программного обеспечения"},
+                {"code": "62.01", "name": "разраб. компьютерного программного обеспечения"},
+                {"code": "62.1", "name": "разраб. компьютерного ПО"},
+                {"code": "62.01", "name": "РАЗРАБОТКА КОМПЬЮТЕРНОГО ПРОГРАММНОГО ОБЕСПЕЧЕНИЯ"},
+                {"code": "62.02", "name": "деят. консультативная в обл. компьютерных технологий"},
+                {"code": "62.02", "name": "деят. консультативная в обл. компьютерных технологий"},
+                {"code": "47.91", "name": "Торговля розничная через интернет"},
+                {"code": "47.91", "name": "торговля розн. через инт."},
+                {"code": "47.91", "name": "ТОРГОВЛЯ РОЗНИЧНАЯ ЧЕРЕЗ ИНТЕРНЕТ"},
+                {
+                    "code": "63.11",
+                    "name": "Деятельность по обработке данных и размещению информации",
+                },
+                {"code": "63.11", "name": "деят. по обработке данных и размещению информации"},
+                {"code": "41.20", "name": "Строительство жилых и нежилых зданий"},
+                {"code": "41.20", "name": "стр-во жилых и нежилых зданий"},
+                {"code": "85.11", "name": "Образование дошкольное"},
+                {"code": "85.11", "name": "ОБРАЗОВАНИЕ ДОШКОЛЬНОЕ"},
+                {
+                    "code": "72.19",
+                    "name": "Научные исследования и разраб. в области технических наук",
+                },
+                {"code": "72.19", "name": "науч. исслед. и разраб. в обл. техн. наук"},
+                {"code": "49.10", "name": "Перевозки железнодорожные пассажирские"},
+                {"code": "49.10", "name": "перевозки ж.-д. пассажирские"},
+                {"code": "69.10", "name": "Деятельность в области права"},
+            ]
+        )
+        st.info(
+            f"📋 Используется встроенный пример: {len(df_input)} записей с дублями и аббревиатурами"
+        )
 
     with st.expander("👁️ Входные данные"):
         st.dataframe(df_input, use_container_width=True, hide_index=True)
@@ -173,29 +220,51 @@ with tab1:
         c1.metric("📥 Входных записей", result["total_input"])
         c2.metric("📤 После обработки", result["total_output"])
         c3.metric("🗑️ Дублей убрано", result["duplicates_removed"])
-        c4.metric("📉 Коэф. сжатия", f"{result['reduction_ratio']:.0%}")
+        total_in = result["total_input"]
+        dedup_pct = result["duplicates_removed"] / total_in if total_in else 0
+        c4.metric("📉 Убрано дублей", f"{dedup_pct:.0%}")
 
         # ── Результирующая таблица ─────────────────────────────────────────────
         st.subheader("📋 Нормализованный справочник")
         rows = []
         for rec in result["records"]:
-            rows.append({
-                "Код": rec.get("canonical_code") or "—",
-                "Каноническое название": rec.get("canonical_name", ""),
-                "Уверенность": f"{rec.get('confidence', 0):.0%}",
-                "Источник": rec.get("source", ""),
-            })
+            name = rec.get("canonical_name", "")
+            name = name[:1].upper() + name[1:] if name else name
+            payload = rec.get("normalized_payload") or {}
+            row = {"Код": rec.get("canonical_code") or "—", "Каноническое название": name}
+            if payload.get("description"):
+                row["Описание"] = payload["description"]
+            if payload.get("severity"):
+                row["Уровень опасности"] = payload["severity"]
+            if payload.get("published_at"):
+                row["Дата публикации"] = payload["published_at"]
+            if payload.get("section"):
+                row["Раздел"] = payload["section"]
+            if payload.get("parent_code"):
+                row["Родительский код"] = payload["parent_code"]
+            row["Уверенность"] = f"{rec.get('confidence', 0):.0%}"
+            rows.append(row)
         df_result = pd.DataFrame(rows)
         st.dataframe(df_result, use_container_width=True, hide_index=True, height=400)
 
         # ── Скачать результат ─────────────────────────────────────────────────
-        csv_out = df_result.to_csv(index=False).encode("utf-8")
-        st.download_button(
-            "⬇️ Скачать результат CSV",
-            csv_out,
-            "normalized_result.csv",
-            "text/csv",
-        )
+        col_dl1, col_dl2 = st.columns(2)
+        with col_dl1:
+            csv_out = df_result.to_csv(index=False).encode("utf-8")
+            st.download_button(
+                "⬇️ Скачать с уверенностью",
+                csv_out,
+                "normalized_result.csv",
+                "text/csv",
+            )
+        with col_dl2:
+            csv_simple = df_result.drop(columns=["Уверенность"]).to_csv(index=False).encode("utf-8")
+            st.download_button(
+                "⬇️ Скачать без уверенности",
+                csv_simple,
+                "normalized_result_clean.csv",
+                "text/csv",
+            )
 
         with st.expander("🔍 Полный JSON ответа"):
             st.json(result)
@@ -250,13 +319,39 @@ with tab2:
 
     st.divider()
     st.subheader("Примеры для теста")
-    st.dataframe(pd.DataFrame([
-        {"Код": "62.1",  "Грязное название": "разраб. компьютерного ПО",              "Ожидаем": "разработка компьютерного ПО → код 62.01"},
-        {"Код": "47.91", "Грязное название": "торговля розн. через инт.",               "Ожидаем": "торговля розничная через интернет"},
-        {"Код": "41.20", "Грязное название": "стр-во жилых и нежилых зданий",           "Ожидаем": "строительство жилых и нежилых зданий"},
-        {"Код": "49.10", "Грязное название": "перевозки ж.-д. пассажирские",            "Ожидаем": "перевозки железнодорожные пассажирские"},
-        {"Код": "62.02", "Грязное название": "деят. консультативная в обл. компьютерных технологий", "Ожидаем": "деятельность консультативная в области компьютерных технологий"},
-    ]), use_container_width=True, hide_index=True)
+    st.dataframe(
+        pd.DataFrame(
+            [
+                {
+                    "Код": "62.1",
+                    "Грязное название": "разраб. компьютерного ПО",
+                    "Ожидаем": "разработка компьютерного ПО → код 62.01",
+                },
+                {
+                    "Код": "47.91",
+                    "Грязное название": "торговля розн. через инт.",
+                    "Ожидаем": "торговля розничная через интернет",
+                },
+                {
+                    "Код": "41.20",
+                    "Грязное название": "стр-во жилых и нежилых зданий",
+                    "Ожидаем": "строительство жилых и нежилых зданий",
+                },
+                {
+                    "Код": "49.10",
+                    "Грязное название": "перевозки ж.-д. пассажирские",
+                    "Ожидаем": "перевозки железнодорожные пассажирские",
+                },
+                {
+                    "Код": "62.02",
+                    "Грязное название": "деят. консультативная в обл. компьютерных технологий",
+                    "Ожидаем": "деятельность консультативная в области компьютерных технологий",
+                },
+            ]
+        ),
+        use_container_width=True,
+        hide_index=True,
+    )
 
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -275,17 +370,27 @@ with tab3:
             "CSV с размеченными парами",
             type=["csv"],
             key="train_upload",
-            help="Колонки: left_code, left_name, left_description, right_code, right_name, right_description, label (1=дубль, 0=не дубль)",
+            help=(
+                "Колонки: left_code, left_name, left_description, "
+                "right_code, right_name, right_description, label (1=дубль, 0=не дубль)"
+            ),
         )
     with col2:
         st.markdown("**Формат CSV:**")
-        st.code("left_code, left_name, left_description,\nright_code, right_name, right_description,\nlabel (1/0)", language="text")
+        st.code(
+            "left_code, left_name, left_description,\n"
+            "right_code, right_name, right_description,\n"
+            "label (1/0)",
+            language="text",
+        )
 
     if train_file:
         df_train = pd.read_csv(train_file)
         total = len(df_train)
         dupes = int(df_train["label"].sum()) if "label" in df_train.columns else 0
-        st.info(f"📊 Загружено: **{total}** пар | дублей: **{dupes}** | не-дублей: **{total - dupes}**")
+        st.info(
+            f"📊 Загружено: **{total}** пар | дублей: **{dupes}** | не-дублей: **{total - dupes}**"
+        )
         with st.expander("Предпросмотр данных"):
             st.dataframe(df_train.head(10), use_container_width=True, hide_index=True)
 
@@ -313,7 +418,10 @@ with tab3:
                     st.error(f"Ошибка: {e}")
     else:
         st.markdown("---")
-        st.markdown("📁 Готовый файл для обучения: `data/training/okved_train_pairs.csv` (60 пар, F1=97.8%)")
+        st.markdown(
+            "📁 Готовый файл для обучения: `data/training/combined_train_pairs.csv` "
+            "(106 пар, F1=99.2%)"
+        )
 
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -385,4 +493,6 @@ with tab4:
     col4.metric("F1 классификатора", "97.8%", "после обучения")
     col5.metric("Коммитов", "23+", "semantic commits")
 
-    st.markdown("**🔗 [GitHub репозиторий](https://github.com/BrakS268/NSI-normalizer-MTP-CourseWork-Chuev-Maxim)**")
+    st.markdown(
+        "**🔗 [GitHub репозиторий](https://github.com/BrakS268/NSI-normalizer-MTP-CourseWork-Chuev-Maxim)**"
+    )

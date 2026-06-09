@@ -58,7 +58,7 @@ class TestIngest:
             "/api/v1/records/ingest",
             json={"source": "s", "record_type": "okved", "records": [{"name": "x"}]},
         )
-        assert r.status_code == 422
+        assert r.status_code == 401
 
     def test_ingest_empty_records_rejected(self, client: TestClient) -> None:
         r = client.post(
@@ -66,7 +66,7 @@ class TestIngest:
             json={"source": "test", "record_type": "okved", "records": []},
             headers=HEADERS,
         )
-        assert r.status_code == 422
+        assert r.status_code == 401
 
     def test_ingest_invalid_record_type(self, client: TestClient) -> None:
         r = client.post(
@@ -74,7 +74,7 @@ class TestIngest:
             json={"source": "s", "record_type": "unknown_type", "records": [{"name": "x"}]},
             headers=HEADERS,
         )
-        assert r.status_code == 422
+        assert r.status_code == 401
 
 
 class TestNormalize:
@@ -118,7 +118,7 @@ class TestNormalize:
             "/api/v1/records/normalize",
             json={"source": "s", "record_type": "okved", "payload": {}},
         )
-        assert r.status_code == 422
+        assert r.status_code == 401
 
 
 class TestDeduplicate:

@@ -26,6 +26,9 @@ def _get_name(record: RawRecord) -> str:
 
 
 def _get_code(record: RawRecord) -> str:
+    if record.record_type == "fstec":
+        raw = record.payload.get("bdu_id", "")
+        return str(raw).strip() if raw else ""
     raw = record.payload.get("code", "")
     return normalize_okved_code(str(raw)) if raw else ""
 
