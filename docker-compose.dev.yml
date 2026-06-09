@@ -1,0 +1,16 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    command: uvicorn nsi_normalizer.api.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./src:/app/src
+    environment:
+      DATABASE_URL: postgresql+psycopg://nsi:nsi@postgres:5432/nsi_db
+      REDIS_URL: redis://redis:6379/0
+      DEBUG: "true"
+
+  postgres:
+    ports:
+      - "5432:5432"
