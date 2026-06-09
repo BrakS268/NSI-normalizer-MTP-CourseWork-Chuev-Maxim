@@ -43,7 +43,9 @@ class DeduplicationPipeline:
         if not records:
             return DeduplicationReport(0, 0, 0, 0)
 
-        id_to_record = {(r.raw_id or str(i)): r for i, r in enumerate(records)}
+        # Re-index records so every record has a unique raw_id (avoids collisions on same code)
+        records = [r.model_copy(update={"raw_id": str(i)}) for i, r in enumerate(records)]
+        id_to_record = {r.raw_id: r for r in records if r.raw_id}
 
         # Stage 1: blocking
         candidate_pairs = self.blocker.get_candidate_pairs(records)
@@ -95,29 +97,22 @@ class DeduplicationPipeline:
 
 
 def _elect_canonical(records: list[RawRecord]) -> NormalizedRecord:
-    """Choose the best record from a cluster as the canonical one.
-
-    Scoring: prefer longer name + longer description + has code.
-    """
+    """Choose the best record from a cluster and normalize it."""
+    from nsi_normalizer.core.normalization.canonical_selector import normalize_record
+    from nsi_normalizer.core.normalization.field_normalizer import normalize_name
 
     def score(r: RawRecord) -> int:
-        name = str(r.payload.get("name", ""))
+        raw_name = str(r.payload.get("name", ""))
+        name = normalize_name(raw_name)
         desc = str(r.payload.get("description") or "")
         has_code = 1 if r.payload.get("code") else 0
-        return len(name) + len(desc) // 2 + has_code * 20
+        # Penalise ALL-CAPS names — prefer mixed/title case
+        is_allcaps = raw_name == raw_name.upper() and raw_name.isalpha() is False and len(raw_name) > 5
+        caps_penalty = -30 if is_allcaps else 0
+        return len(name) + len(desc) // 2 + has_code * 20 + caps_penalty
 
     best = max(records, key=score)
-    name = str(best.payload.get("name", ""))
-    code = best.payload.get("code")
-
-    return NormalizedRecord(
-        record_type=best.record_type,
-        canonical_name=name,
-        canonical_code=str(code) if code else None,
-        normalized_payload=dict(best.payload),
-        confidence=1.0,
-        source=best.source,
-    )
+    return normalize_record(best)
 
 
 def _average_edge_confidence(graph: nx.Graph, nodes: set[str]) -> float:

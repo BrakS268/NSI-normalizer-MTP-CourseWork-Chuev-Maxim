@@ -12,6 +12,8 @@ from nsi_normalizer.api.schemas import (
     IngestResponse,
     NormalizeRequest,
     NormalizeResponse,
+    ProcessRequest,
+    ProcessResponse,
 )
 from nsi_normalizer.core.normalization.canonical_selector import normalize_record
 from nsi_normalizer.schemas.common import RawRecord
@@ -94,3 +96,72 @@ async def deduplicate(
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
     return DeduplicateResponse(job_id=job_id)
+
+
+@router.post(
+    "/process",
+    response_model=ProcessResponse,
+    summary="Upload, clean, normalize and deduplicate records in one step",
+)
+async def process(
+    request: ProcessRequest,
+    _: str = Depends(verify_api_key),
+) -> ProcessResponse:
+    """Full pipeline: cleaning → normalization → deduplication in a single request."""
+    from nsi_normalizer.core.normalization.canonical_selector import normalize_cluster, normalize_record
+    from nsi_normalizer.ml.pipeline import DeduplicationPipeline
+
+    # Build RawRecords
+    raw_records = [
+        RawRecord(
+            source=request.source,
+            record_type=request.record_type,
+            raw_id=str(item.get("id") or item.get("code") or i),
+            payload=item,
+        )
+        for i, item in enumerate(request.records)
+    ]
+
+    # Run deduplication pipeline
+    pipeline = DeduplicationPipeline(threshold=request.threshold)
+    report = pipeline.run(raw_records)
+
+    # Build output: one normalized record per cluster
+    output: list = []
+    seen_ids: set[str] = set()
+
+    for cluster_result in report.results:
+        # Collect raw records belonging to this cluster
+        cluster_raw = [r for r in raw_records if str(r.canonical_id if hasattr(r, "canonical_id") else id(r)) not in seen_ids]
+        # Find records by cluster membership
+        members = [r for r in raw_records if str(id(r)) not in seen_ids]
+
+        if len(cluster_result.record_ids) > 1:
+            # Multiple records in cluster — pick canonical from group
+            cluster_members = [
+                r for r in raw_records
+                if str(r.raw_id) in {str(rid) for rid in cluster_result.record_ids}
+                   or str(id(r)) in {str(rid) for rid in cluster_result.record_ids}
+            ]
+            if cluster_members:
+                normalized = normalize_cluster(cluster_members)
+            else:
+                normalized = cluster_result.canonical_record
+        else:
+            normalized = cluster_result.canonical_record
+
+        for rid in cluster_result.record_ids:
+            seen_ids.add(str(rid))
+        output.append(normalized)
+
+    total_input = len(raw_records)
+    total_output = len(output)
+    duplicates_removed = total_input - total_output
+
+    return ProcessResponse(
+        total_input=total_input,
+        total_output=total_output,
+        duplicates_removed=duplicates_removed,
+        reduction_ratio=report.reduction_ratio,
+        records=output,
+    )
